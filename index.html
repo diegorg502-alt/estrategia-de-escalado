@@ -372,8 +372,13 @@
       </div>
 
       <div class="input-row">
-        <label class="input-label">Ticket medio de altas (€)</label>
+        <label class="input-label">Ticket alta al mes (€)</label>
         <input type="number" class="num-input blue" id="i-ticket-alta" value="200" min="0" step="50">
+      </div>
+
+      <div class="input-row">
+        <label class="input-label">Meses de financiación</label>
+        <input type="number" class="num-input blue" id="i-financing" value="3" min="1" step="1">
       </div>
 
       <div class="input-row">
@@ -496,6 +501,7 @@ function simulate() {
   const budget0      = Math.max(0, getNum('i-budget'));
   const altasMes     = Math.max(0, getNum('i-altas'));
   const ticketAlta   = Math.max(0, getNum('i-ticket-alta'));
+  const financing    = Math.max(1, Math.min(duration, Math.floor(getNum('i-financing'))));
   const growth       = getNum('i-growth') / 100;
   const multiplier   = Math.max(1, getNum('i-multiplier'));
   const months       = Math.max(1, Math.floor(getNum('i-months')));
@@ -506,7 +512,8 @@ function simulate() {
   const pCycle = renovations > 1 ? (renovations - 1) / renovations : 0;
   const cyclesAvg = renovations;
   const lifeM = renovations * duration;
-  const ltv = lifeM * ticketMes + ticketAlta;
+  // LTV de un alta nueva = ciclos × meses de financiación × ticket alta/mes
+  const ltv = cyclesAvg * financing * ticketAlta;
 
   // CAC implícito
   const cacImplicit = altasMes > 0 ? budget0 / altasMes : 0;
@@ -533,26 +540,37 @@ function simulate() {
     newCohorts[m] = na;
   }
 
-  // Vivos cada mes:
-  //  - Cohorte inicial (clientesIni) entra en mes 0 con ciclo 0
-  //  - Cohortes nuevas entran en mes k con ciclo 0
-  //  - En cada cambio de ciclo (cada `duration` meses) se aplica probabilidad de renovar
-  const alive = new Array(months).fill(0);
+  // CARTERA ACTUAL (suavizado): cada cliente vivo aporta ticket_mes recurrente.
+  // Renovación aplicada al final de cada ciclo.
+  const existingAlive = new Array(months).fill(0);
   for (let m = 0; m < months; m++) {
-    alive[m] += clientesIni * Math.pow(pCycle, Math.floor(m / duration));
+    existingAlive[m] = clientesIni * Math.pow(pCycle, Math.floor(m / duration));
   }
+
+  // ALTAS NUEVAS (financiación): cada cohorte paga ticket_alta/mes durante los meses
+  // de financiación de cada ciclo, y 0 los meses restantes hasta renovar.
+  const newAlive   = new Array(months).fill(0);
+  const newRevenue = new Array(months).fill(0);
   for (let k = 0; k < months; k++) {
     const size = newCohorts[k];
     if (size <= 0) continue;
     for (let m = k; m < months; m++) {
-      alive[m] += size * Math.pow(pCycle, Math.floor((m - k) / duration));
+      const elapsed   = m - k;
+      const cycle     = Math.floor(elapsed / duration);
+      const monthIn   = elapsed % duration;
+      const probAlive = Math.pow(pCycle, cycle);
+      const cohortAlive = size * probAlive;
+      newAlive[m] += cohortAlive;
+      if (monthIn < financing) newRevenue[m] += cohortAlive * ticketAlta;
     }
   }
 
-  // Facturación = (vivos × ticket_mes recurrente) + (nuevas altas del mes × ticket_alta one-shot)
+  // Total mensual: cartera suavizada + caja real de las altas
+  const alive   = new Array(months).fill(0);
   const revenue = new Array(months).fill(0);
   for (let m = 0; m < months; m++) {
-    revenue[m] = alive[m] * ticketMes + newCohorts[m] * ticketAlta;
+    alive[m]   = existingAlive[m] + newAlive[m];
+    revenue[m] = existingAlive[m] * ticketMes + newRevenue[m];
   }
 
   // Métricas multiplicador
@@ -679,7 +697,7 @@ function renderChart() {
 
 const inputIds = [
   'i-clients','i-ticket-mes','i-renovations','i-duration',
-  'i-budget','i-altas','i-ticket-alta','i-growth',
+  'i-budget','i-altas','i-ticket-alta','i-financing','i-growth',
   'i-multiplier','i-months'
 ];
 inputIds.forEach(id => {
