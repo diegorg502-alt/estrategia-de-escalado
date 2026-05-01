@@ -437,6 +437,7 @@
               <div class="legend-item"><div class="legend-dot" style="background:#1a5c3a"></div>superado</div>
               <div class="legend-item"><div class="legend-dot" style="background:#1e3a6e"></div>en curso</div>
               <div class="legend-item"><div class="legend-dot" style="background:#8b1a1a;height:2px;width:14px;border-radius:0"></div>objetivo</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#7a5500;height:2px;width:14px;border-radius:0"></div>presupuesto</div>
             </div>
             <div class="view-toggle">
               <button class="toggle-btn active" id="btn-revenue" onclick="setView('revenue')">€</button>
@@ -589,6 +590,15 @@ function simulate() {
     revenue[m] = existingAlive[m] * ticketMes + newRevenue[m];
   }
 
+  // Presupuesto mensual: crece al ritmo del growth
+  const budgetArr = new Array(months).fill(0);
+  let bud = budget0;
+  budgetArr[0] = bud;
+  for (let m = 1; m < months; m++) {
+    bud = bud * (1 + growth);
+    budgetArr[m] = bud;
+  }
+
   // Métricas multiplicador
   const startRevenue = revenue[0];
   const targetRevenue = startRevenue * multiplier;
@@ -601,7 +611,7 @@ function simulate() {
     }
   }
 
-  simData = { revenue, clients: alive, target: targetRevenue, months, multiplier };
+  simData = { revenue, clients: alive, target: targetRevenue, months, multiplier, budget: budgetArr };
 
   document.getElementById('m-target-label').textContent = 'Objetivo ×' + (Number.isInteger(multiplier) ? multiplier : fmt1(multiplier));
   document.getElementById('m-start').textContent   = fmt(startRevenue) + '€';
@@ -661,6 +671,21 @@ function renderChart() {
     });
   }
 
+  if (isRevenue && simData.budget) {
+    datasets.push({
+      label: 'Presupuesto',
+      data: simData.budget.map(v => Math.round(v)),
+      type: 'line',
+      yAxisID: 'y1',
+      borderColor: '#7a5500',
+      borderWidth: 2,
+      borderDash: [3, 3],
+      pointRadius: 0,
+      fill: false,
+      order: 0
+    });
+  }
+
   if (chartInst) chartInst.destroy();
   chartInst = new Chart(document.getElementById('simChart'), {
     type: 'bar',
@@ -680,7 +705,9 @@ function renderChart() {
           bodyFont:  { family: "'Source Code Pro', monospace", size: 12 },
           callbacks: {
             label: ctx => {
-              if (ctx.dataset.label && ctx.dataset.label.startsWith('Objetivo')) return 'Objetivo: ' + fmt(ctx.raw) + (isRevenue ? '€' : '');
+              const lbl = ctx.dataset.label || '';
+              if (lbl.startsWith('Objetivo'))   return 'Objetivo: '   + fmt(ctx.raw) + (isRevenue ? '€' : '');
+              if (lbl === 'Presupuesto')        return 'Presupuesto: ' + fmt(ctx.raw) + '€';
               return isRevenue ? fmt(ctx.raw) + '€' : ctx.raw + ' clientes';
             }
           }
@@ -688,6 +715,7 @@ function renderChart() {
       },
       scales: {
         y: {
+          position: 'left',
           ticks: {
             color: '#888880',
             font: { family: "'Source Code Pro', monospace", size: 10 },
@@ -695,6 +723,17 @@ function renderChart() {
           },
           grid: { color: 'rgba(0,0,0,0.05)' },
           border: { color: 'transparent' }
+        },
+        y1: {
+          display: isRevenue,
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          border: { color: 'transparent' },
+          ticks: {
+            color: '#7a5500',
+            font: { family: "'Source Code Pro', monospace", size: 10 },
+            callback: v => fmt(v) + '€'
+          }
         },
         x: {
           ticks: {
