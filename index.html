@@ -374,8 +374,9 @@
       <div class="panel-subtitle">Servicio</div>
 
       <div class="input-row">
-        <label class="input-label">Ticket por servicio (€)</label>
+        <label class="input-label">Ticket medio del cliente (€)</label>
         <input type="number" class="num-input accent" id="i-ticket" value="800" min="0" step="50">
+        <div class="input-hint" id="ticket-hint">→ Hoy te dejan —</div>
       </div>
 
       <div class="input-row">
@@ -516,23 +517,41 @@ function simulate() {
       : '→ CAC implícito: —';
   }
 
-  // cohortes[m] = clientes nuevos que entran en el mes m (0-indexado)
-  // Mes 0 incluye los iniciales + los nuevos del mes 1
-  // Mes m+1 escala las altas en proporción al presupuesto (CAC constante)
-  const cohortes = new Array(months).fill(0);
-  cohortes[0] = clientesIni + new1;
+  // Facturación mensual media por cliente (vista suavizada: ticket repartido en la duración)
+  const monthlyPerClient = ticket / duration;
+  const currentMonthly   = clientesIni * monthlyPerClient;
+  const ticketHint = document.getElementById('ticket-hint');
+  if (ticketHint) {
+    ticketHint.textContent = currentMonthly > 0
+      ? '→ Hoy te dejan ' + fmt(currentMonthly) + '€/mes (' + fmt(monthlyPerClient) + '€/cliente)'
+      : '→ Hoy te dejan —';
+  }
+
+  // CLIENTES ACTUALES (vista suavizada): cada uno aporta ticket/duración al mes mientras esté vivo.
+  // La renovación se aplica al final de cada ciclo.
+  const existingAlive = new Array(months).fill(0);
+  for (let m = 0; m < months; m++) {
+    const cycle     = Math.floor(m / duration);
+    const probAlive = Math.pow(renewal, cycle);
+    existingAlive[m] = clientesIni * probAlive;
+  }
+
+  // NUEVAS ALTAS (vista de caja): se cobra ticket/financiación durante los meses de financiación
+  // de cada ciclo. Se aplica renovación entre ciclos.
+  const newCohorts = new Array(months).fill(0);
+  newCohorts[0] = new1;
   let np = new1;
   for (let m = 1; m < months; m++) {
     np = np * (1 + growth);
-    cohortes[m] = np;
+    newCohorts[m] = np;
   }
 
-  const revenue = new Array(months).fill(0);
-  const active  = new Array(months).fill(0);
+  const newRevenue = new Array(months).fill(0);
+  const newAlive   = new Array(months).fill(0);
   const pagoMensual = ticket / financing;
 
   for (let mAlta = 0; mAlta < months; mAlta++) {
-    const tam = cohortes[mAlta];
+    const tam = newCohorts[mAlta];
     if (tam <= 0) continue;
     for (let t = mAlta; t < months; t++) {
       const elapsed   = t - mAlta;
@@ -540,9 +559,17 @@ function simulate() {
       const monthIn   = elapsed % duration;
       const probAlive = Math.pow(renewal, cycle);
       const alive     = tam * probAlive;
-      active[t] += alive;
-      if (monthIn < financing) revenue[t] += alive * pagoMensual;
+      newAlive[t] += alive;
+      if (monthIn < financing) newRevenue[t] += alive * pagoMensual;
     }
+  }
+
+  // Total: suavizado de actuales + caja de nuevas altas
+  const revenue = new Array(months).fill(0);
+  const active  = new Array(months).fill(0);
+  for (let m = 0; m < months; m++) {
+    revenue[m] = existingAlive[m] * monthlyPerClient + newRevenue[m];
+    active[m]  = existingAlive[m] + newAlive[m];
   }
 
   const startRevenue  = revenue[0];
