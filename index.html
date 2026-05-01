@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador de Ingresos — Altas & Renovaciones</title>
+<title>Simulador de Ingresos — Altas y Renovaciones</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -44,16 +44,11 @@
 
   /* HEADER */
   header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
     margin-bottom: 2.5rem;
-    gap: 1rem;
-    flex-wrap: wrap;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid var(--border2);
   }
-  .header-left h1 {
+  header h1 {
     font-family: var(--font-display);
     font-size: clamp(1.6rem, 3vw, 2.4rem);
     font-weight: 700;
@@ -61,26 +56,7 @@
     letter-spacing: -0.01em;
     color: var(--text);
   }
-  .header-left h1 span { color: var(--accent); font-style: italic; }
-  .header-left p {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--muted);
-    font-family: var(--font-mono);
-    letter-spacing: 0.04em;
-  }
-  .badge {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    padding: 4px 10px;
-    border-radius: 3px;
-    white-space: nowrap;
-    margin-top: 6px;
-    letter-spacing: 0.06em;
-  }
+  header h1 span { color: var(--accent); font-style: italic; }
 
   /* LAYOUT MAIN */
   .main-grid {
@@ -106,58 +82,58 @@
     color: var(--muted);
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin-bottom: 1.25rem;
-    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
     border-bottom: 1px solid var(--border);
   }
-
-  .ctrl-group { margin-bottom: 1.25rem; }
-  .ctrl-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 0.5rem;
+  .panel-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 1.25rem 0 0.75rem;
   }
-  .ctrl-name {
+  .panel-subtitle:first-of-type { margin-top: 0; }
+
+  .input-row { margin-bottom: 0.85rem; }
+  .input-label {
     font-size: 0.78rem;
     color: var(--muted);
     font-family: var(--font-body);
+    display: block;
+    margin-bottom: 0.35rem;
   }
-  .ctrl-val {
-    font-size: 0.95rem;
-    font-weight: 500;
+  .input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .num-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 9px 12px;
     color: var(--text);
     font-family: var(--font-mono);
-    min-width: 70px;
-    text-align: right;
-  }
-  .ctrl-val.accent { color: var(--accent); }
-
-  input[type=range] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 2px;
-    background: var(--border2);
-    border-radius: 1px;
+    font-size: 0.95rem;
     outline: none;
-    cursor: pointer;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
   }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--text);
-    border: 2px solid var(--bg);
-    box-shadow: 0 0 0 1px var(--border2);
-    cursor: pointer;
-    transition: transform 0.15s;
+  .num-input:focus { border-color: var(--accent); }
+  .num-input.accent { border-left: 3px solid var(--accent); padding-left: 12px; }
+  .num-input.blue { border-left: 3px solid var(--accent2); padding-left: 12px; }
+  .num-input.red { border-left: 3px solid var(--danger); padding-left: 12px; }
+  .input-suffix {
+    position: absolute;
+    right: 32px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    pointer-events: none;
   }
-  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-  input[type=range].blue::-webkit-slider-thumb { background: var(--accent2); }
-  input[type=range].red::-webkit-slider-thumb { background: var(--danger); }
 
   .divider {
     height: 1px;
@@ -273,33 +249,30 @@
     align-items: center;
   }
   .legend-item { display: flex; align-items: center; gap: 5px; }
-  .legend-dot {
-    width: 8px; height: 8px;
-    border-radius: 2px;
-  }
-  .chart-wrap { position: relative; width: 100%; height: 260px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .chart-wrap { position: relative; width: 100%; height: 280px; }
 
-  /* LTV/CAC PANEL */
-  .ltv-panel {
+  /* CLIENTE MEDIO */
+  .client-panel {
     background: var(--surface);
     border: 1px solid var(--border2);
     border-radius: 4px;
     padding: 1.5rem;
   }
-  .ltv-grid {
+  .client-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0.875rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
   }
-  @media (max-width: 600px) { .ltv-grid { grid-template-columns: 1fr 1fr; } }
-  .ltv-item {
+  @media (max-width: 600px) { .client-grid { grid-template-columns: 1fr 1fr; } }
+  .client-item {
     background: var(--surface2);
     border-radius: 3px;
     padding: 0.875rem 1rem;
     border: 1px solid var(--border);
   }
-  .ltv-item label {
+  .client-item label {
     font-size: 0.62rem;
     font-family: var(--font-mono);
     color: var(--muted);
@@ -308,42 +281,12 @@
     display: block;
     margin-bottom: 0.35rem;
   }
-  .ltv-item .ltv-val {
-    font-size: 1.05rem;
+  .client-item .client-val {
+    font-size: 1.15rem;
     font-weight: 600;
     font-family: var(--font-display);
+    color: var(--accent);
   }
-  .ltv-val.ok { color: var(--accent); }
-  .ltv-val.warn { color: var(--warning); }
-  .ltv-val.bad { color: var(--danger); }
-
-  .ltv-input-row {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
-  .ltv-input-group { flex: 1; min-width: 140px; }
-  .ltv-input-group label {
-    font-size: 0.72rem;
-    font-family: var(--font-body);
-    color: var(--muted);
-    display: block;
-    margin-bottom: 4px;
-  }
-  .ltv-input-group input[type=number] {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    padding: 8px 12px;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .ltv-input-group input[type=number]:focus { border-color: var(--accent); }
 
   /* TOGGLE */
   .view-toggle {
@@ -387,11 +330,7 @@
 <div class="wrap">
 
   <header>
-    <div class="header-left">
-      <h1>Simulador de <span>Ingresos</span><br>Altas & Renovaciones</h1>
-      <p>modelo trimestral · contratos de servicios · paid media</p>
-    </div>
-    <div class="badge">v1.0 · GitHub Pages</div>
+    <h1>Simulador de <span>Ingresos</span><br>Altas y Renovaciones</h1>
   </header>
 
   <div class="main-grid">
@@ -400,66 +339,54 @@
     <div class="panel">
       <div class="panel-title">// parámetros del modelo</div>
 
-      <div class="ctrl-group">
-        <div class="ctrl-header">
-          <span class="ctrl-name">Clientes iniciales</span>
-          <span class="ctrl-val accent" id="v-clients">19</span>
-        </div>
-        <input type="range" id="r-clients" min="1" max="80" value="19" step="1">
+      <div class="panel-subtitle">Estado actual</div>
+
+      <div class="input-row">
+        <label class="input-label">Clientes iniciales</label>
+        <input type="number" class="num-input accent" id="i-clients" value="19" min="0" step="1">
       </div>
 
-      <div class="ctrl-group">
-        <div class="ctrl-header">
-          <span class="ctrl-name">Precio / cliente (€/mes)</span>
-          <span class="ctrl-val accent" id="v-price">300€</span>
-        </div>
-        <input type="range" id="r-price" min="100" max="2000" value="300" step="50">
+      <div class="input-row">
+        <label class="input-label">Clientes nuevos mes 1</label>
+        <input type="number" class="num-input blue" id="i-new1" value="2" min="0" step="0.5">
       </div>
 
-      <div class="divider"></div>
-
-      <div class="ctrl-group">
-        <div class="ctrl-header">
-          <span class="ctrl-name">Renovación trimestral</span>
-          <span class="ctrl-val" id="v-renewal">50%</span>
-        </div>
-        <input type="range" class="red" id="r-renewal" min="10" max="100" value="50" step="5">
+      <div class="input-row">
+        <label class="input-label">Crecimiento mensual de altas (%)</label>
+        <input type="number" class="num-input blue" id="i-growth" value="35" min="0" step="1">
       </div>
 
       <div class="divider"></div>
 
-      <div class="ctrl-group">
-        <div class="ctrl-header">
-          <span class="ctrl-name">Budget ads inicial (€/mes)</span>
-          <span class="ctrl-val" id="v-adspend">300€</span>
-        </div>
-        <input type="range" class="blue" id="r-adspend" min="100" max="5000" value="300" step="100">
+      <div class="panel-subtitle">Servicio</div>
+
+      <div class="input-row">
+        <label class="input-label">Ticket por servicio (€)</label>
+        <input type="number" class="num-input accent" id="i-ticket" value="800" min="0" step="50">
       </div>
 
-      <div class="ctrl-group">
-        <div class="ctrl-header">
-          <span class="ctrl-name">Clientes nuevos mes 1</span>
-          <span class="ctrl-val" id="v-new1">1.5</span>
-        </div>
-        <input type="range" class="blue" id="r-new1" min="0.5" max="10" value="1.5" step="0.5">
+      <div class="input-row">
+        <label class="input-label">Duración del servicio (meses)</label>
+        <input type="number" class="num-input accent" id="i-duration" value="6" min="1" step="1">
       </div>
 
-      <div class="ctrl-group">
-        <div class="ctrl-header">
-          <span class="ctrl-name">Crecimiento budget ads/mes</span>
-          <span class="ctrl-val" id="v-growth">35%</span>
-        </div>
-        <input type="range" class="blue" id="r-growth" min="5" max="100" value="35" step="5">
+      <div class="input-row">
+        <label class="input-label">Meses de financiación</label>
+        <input type="number" class="num-input accent" id="i-financing" value="3" min="1" step="1">
+      </div>
+
+      <div class="input-row">
+        <label class="input-label">Renovación por ciclo (%)</label>
+        <input type="number" class="num-input red" id="i-renewal" value="60" min="0" max="100" step="5">
       </div>
 
       <div class="divider"></div>
 
-      <div class="ctrl-group">
-        <div class="ctrl-header">
-          <span class="ctrl-name">Meses a simular</span>
-          <span class="ctrl-val" id="v-months">24</span>
-        </div>
-        <input type="range" id="r-months" min="6" max="36" value="24" step="1">
+      <div class="panel-subtitle">Simulación</div>
+
+      <div class="input-row">
+        <label class="input-label">Meses a simular</label>
+        <input type="number" class="num-input" id="i-months" value="24" min="1" step="1">
       </div>
     </div>
 
@@ -506,47 +433,25 @@
           </div>
         </div>
         <div class="chart-wrap">
-          <canvas id="simChart" role="img" aria-label="Evolución mensual de ingresos o clientes según parámetros seleccionados"></canvas>
+          <canvas id="simChart" role="img" aria-label="Evolución mensual de ingresos o clientes activos"></canvas>
         </div>
       </div>
 
-      <!-- LTV / CAC -->
-      <div class="ltv-panel">
-        <div class="panel-title">// análisis ltv vs cac</div>
-        <div class="ltv-input-row">
-          <div class="ltv-input-group">
-            <label>CAC estimado (€ por cliente)</label>
-            <input type="number" id="i-cac" value="150" min="0" step="10">
+      <!-- CLIENTE MEDIO -->
+      <div class="client-panel">
+        <div class="panel-title">// cliente medio</div>
+        <div class="client-grid">
+          <div class="client-item">
+            <label>Ciclos medios</label>
+            <div class="client-val" id="c-cycles">—</div>
           </div>
-          <div class="ltv-input-group">
-            <label>Margen neto del servicio (%)</label>
-            <input type="number" id="i-margin" value="60" min="1" max="100" step="5">
+          <div class="client-item">
+            <label>Duración media</label>
+            <div class="client-val" id="c-duration">—</div>
           </div>
-        </div>
-        <div class="ltv-grid">
-          <div class="ltv-item">
-            <label>Duración media (meses)</label>
-            <div class="ltv-val" id="ltv-duration">—</div>
-          </div>
-          <div class="ltv-item">
-            <label>LTV bruto</label>
-            <div class="ltv-val" id="ltv-bruto">—</div>
-          </div>
-          <div class="ltv-item">
-            <label>LTV neto</label>
-            <div class="ltv-val" id="ltv-neto">—</div>
-          </div>
-          <div class="ltv-item">
-            <label>CAC introducido</label>
-            <div class="ltv-val" id="ltv-cac">—</div>
-          </div>
-          <div class="ltv-item">
-            <label>Ratio LTV/CAC</label>
-            <div class="ltv-val" id="ltv-ratio">—</div>
-          </div>
-          <div class="ltv-item">
-            <label>Veredicto</label>
-            <div class="ltv-val" id="ltv-verdict">—</div>
+          <div class="client-item">
+            <label>Facturación / cliente</label>
+            <div class="client-val" id="c-ltv">—</div>
           </div>
         </div>
       </div>
@@ -554,7 +459,7 @@
     </div>
   </div>
 
-  <footer>simulador de ingresos · altas & renovaciones trimestrales · uso interno</footer>
+  <footer>simulador de ingresos · altas y renovaciones · uso interno</footer>
 </div>
 
 <script>
@@ -569,71 +474,98 @@ function setView(v) {
   renderChart();
 }
 
-function get(id) { return parseFloat(document.getElementById(id).value); }
+function getNum(id) {
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? 0 : v;
+}
 
-function fmt(n) { return n.toLocaleString('es-ES'); }
+function fmt(n) { return Math.round(n).toLocaleString('es-ES'); }
+function fmt1(n) { return (Math.round(n * 10) / 10).toLocaleString('es-ES'); }
 
 function simulate() {
-  const baseClients = get('r-clients');
-  const price = get('r-price');
-  const renewalRate = get('r-renewal') / 100;
-  const budgetGrowthRate = get('r-growth') / 100;
-  const new1 = get('r-new1');
-  const months = get('r-months');
+  const clientesIni  = Math.max(0, getNum('i-clients'));
+  const new1         = Math.max(0, getNum('i-new1'));
+  const growth       = getNum('i-growth') / 100;
+  const ticket       = Math.max(0, getNum('i-ticket'));
+  const duration     = Math.max(1, Math.floor(getNum('i-duration')));
+  let   financing    = Math.max(1, Math.floor(getNum('i-financing')));
+  if (financing > duration) financing = duration;
+  const renewal      = Math.max(0, Math.min(100, getNum('i-renewal'))) / 100;
+  const months       = Math.max(1, Math.floor(getNum('i-months')));
 
-  let activeClients = baseClients;
-  const revenueArr = [];
-  const clientArr = [];
-  let newPerMonth = new1;
-
-  for (let m = 1; m <= months; m++) {
-    if (m > 1) newPerMonth = newPerMonth * (1 + budgetGrowthRate * 0.5);
-    activeClients += newPerMonth;
-    if (m % 3 === 0) {
-      const churned = activeClients * (1 - renewalRate);
-      activeClients = Math.max(0, activeClients - churned);
-    }
-    revenueArr.push(Math.round(activeClients * price));
-    clientArr.push(Math.round(activeClients * 10) / 10);
+  // cohortes[m] = clientes nuevos que entran en el mes m (0-indexado)
+  // Mes 0 incluye los iniciales + los nuevos del mes 1
+  const cohortes = new Array(months).fill(0);
+  cohortes[0] = clientesIni + new1;
+  let np = new1;
+  for (let m = 1; m < months; m++) {
+    np = np * (1 + growth);
+    cohortes[m] = np;
   }
 
-  const startRevenue = revenueArr[0];
+  const revenue = new Array(months).fill(0);
+  const active  = new Array(months).fill(0);
+  const pagoMensual = ticket / financing;
+
+  for (let mAlta = 0; mAlta < months; mAlta++) {
+    const tam = cohortes[mAlta];
+    if (tam <= 0) continue;
+    for (let t = mAlta; t < months; t++) {
+      const elapsed   = t - mAlta;
+      const cycle     = Math.floor(elapsed / duration);
+      const monthIn   = elapsed % duration;
+      const probAlive = Math.pow(renewal, cycle);
+      const alive     = tam * probAlive;
+      active[t] += alive;
+      if (monthIn < financing) revenue[t] += alive * pagoMensual;
+    }
+  }
+
+  const startRevenue  = revenue[0];
   const targetRevenue = startRevenue * 2;
 
-  let doubleMonth = null;
-  let doubleClients = null;
-  for (let i = 0; i < revenueArr.length; i++) {
-    if (revenueArr[i] >= targetRevenue) {
-      doubleMonth = i + 1;
-      doubleClients = Math.round(clientArr[i]);
+  let doubleMonth = null, doubleClients = null;
+  for (let i = 0; i < revenue.length; i++) {
+    if (revenue[i] >= targetRevenue && targetRevenue > 0) {
+      doubleMonth   = i + 1;
+      doubleClients = active[i];
       break;
     }
   }
 
-  simData = { revenue: revenueArr, clients: clientArr, target: targetRevenue, months };
+  simData = { revenue, clients: active, target: targetRevenue, months };
 
-  document.getElementById('m-start').textContent = fmt(startRevenue) + '€';
-  document.getElementById('m-target').textContent = fmt(Math.round(targetRevenue)) + '€';
-  document.getElementById('m-month').textContent = doubleMonth ? 'Mes ' + doubleMonth : '+' + months + 'm';
-  document.getElementById('m-clients').textContent = doubleClients ? doubleClients + ' clientes' : 'No alcanza';
+  document.getElementById('m-start').textContent   = fmt(startRevenue) + '€';
+  document.getElementById('m-target').textContent  = fmt(targetRevenue) + '€';
+  document.getElementById('m-month').textContent   = doubleMonth ? 'Mes ' + doubleMonth : '+' + months + 'm';
+  document.getElementById('m-clients').textContent = doubleClients !== null ? Math.round(doubleClients) + ' clientes' : 'No alcanza';
 
   const banner = document.getElementById('banner');
   if (doubleMonth) {
     banner.className = 'banner ok';
-    banner.innerHTML = '→ Con estos parámetros los ingresos se duplican en el <strong>mes ' + doubleMonth + '</strong>. La renovación y el crecimiento del budget son las palancas clave.';
+    banner.innerHTML = '→ Con estos parámetros los ingresos se duplican en el <strong>mes ' + doubleMonth + '</strong>. La renovación y el ritmo de altas son las palancas clave.';
   } else {
     banner.className = 'banner warn';
-    banner.innerHTML = '→ Con el churn actual, los ingresos <strong>no llegan a duplicarse</strong> en ' + months + ' meses. Sube la renovación o acelera el crecimiento del budget.';
+    banner.innerHTML = '→ Con estos parámetros los ingresos <strong>no llegan a duplicarse</strong> en ' + months + ' meses. Sube la renovación, acelera las altas o reduce los meses de financiación.';
   }
 
-  updateLTV();
+  // Cliente medio
+  const cycles    = renewal < 1 ? 1 / (1 - renewal) : Infinity;
+  const lifeM     = cycles * duration;
+  const ltvBruto  = cycles * ticket;
+  document.getElementById('c-cycles').textContent   = isFinite(cycles)   ? fmt1(cycles) + ' ciclos' : '∞';
+  document.getElementById('c-duration').textContent = isFinite(lifeM)    ? fmt1(lifeM) + ' meses'  : '∞';
+  document.getElementById('c-ltv').textContent      = isFinite(ltvBruto) ? fmt(ltvBruto) + '€'     : '∞';
+
   renderChart();
 }
 
 function renderChart() {
   const labels = Array.from({ length: simData.months }, (_, i) => 'M' + (i + 1));
   const isRevenue = currentView === 'revenue';
-  const data = isRevenue ? simData.revenue : simData.clients;
+  const data = isRevenue
+    ? simData.revenue.map(v => Math.round(v))
+    : simData.clients.map(v => Math.round(v * 10) / 10);
   const target = isRevenue ? simData.target : null;
   const targetLine = target ? Array(simData.months).fill(Math.round(target)) : null;
 
@@ -677,7 +609,7 @@ function renderChart() {
           titleColor: '#888880',
           bodyColor: '#1a1a18',
           titleFont: { family: "'Source Code Pro', monospace", size: 11 },
-          bodyFont: { family: "'Source Code Pro', monospace", size: 12 },
+          bodyFont:  { family: "'Source Code Pro', monospace", size: 12 },
           callbacks: {
             label: ctx => {
               if (ctx.dataset.label === 'Objetivo ×2') return 'Objetivo: ' + fmt(ctx.raw) + (isRevenue ? '€' : '');
@@ -711,63 +643,10 @@ function renderChart() {
   });
 }
 
-function updateLTV() {
-  const renewalRate = get('r-renewal') / 100;
-  const price = get('r-price');
-  const cac = parseFloat(document.getElementById('i-cac').value) || 0;
-  const margin = parseFloat(document.getElementById('i-margin').value) / 100 || 0.6;
-
-  const churnRate = 1 - Math.pow(renewalRate, 1/3);
-  const duration = churnRate > 0 ? Math.round((1 / churnRate) * 10) / 10 : 99;
-  const ltvBruto = Math.round(duration * price);
-  const ltvNeto = Math.round(ltvBruto * margin);
-  const ratio = cac > 0 ? Math.round((ltvNeto / cac) * 10) / 10 : 0;
-
-  document.getElementById('ltv-duration').textContent = duration + ' meses';
-  document.getElementById('ltv-bruto').textContent = fmt(ltvBruto) + '€';
-  document.getElementById('ltv-neto').textContent = fmt(ltvNeto) + '€';
-  document.getElementById('ltv-cac').textContent = fmt(cac) + '€';
-
-  const ratioEl = document.getElementById('ltv-ratio');
-  const verdictEl = document.getElementById('ltv-verdict');
-  ratioEl.textContent = ratio + 'x';
-
-  if (ratio >= 3) {
-    ratioEl.className = 'ltv-val ok';
-    verdictEl.textContent = 'ESCALA';
-    verdictEl.className = 'ltv-val ok';
-  } else if (ratio >= 1.5) {
-    ratioEl.className = 'ltv-val warn';
-    verdictEl.textContent = 'AJUSTA';
-    verdictEl.className = 'ltv-val warn';
-  } else {
-    ratioEl.className = 'ltv-val bad';
-    verdictEl.textContent = 'REVISA';
-    verdictEl.className = 'ltv-val bad';
-  }
-}
-
-const rangeIds = ['r-clients','r-price','r-renewal','r-adspend','r-new1','r-growth','r-months'];
-const displayMap = {
-  'r-clients': { id: 'v-clients', fmt: v => v },
-  'r-price':   { id: 'v-price',   fmt: v => v + '€' },
-  'r-renewal': { id: 'v-renewal', fmt: v => v + '%' },
-  'r-adspend': { id: 'v-adspend', fmt: v => v + '€' },
-  'r-new1':    { id: 'v-new1',    fmt: v => v },
-  'r-growth':  { id: 'v-growth',  fmt: v => v + '%' },
-  'r-months':  { id: 'v-months',  fmt: v => v },
-};
-
-rangeIds.forEach(id => {
-  document.getElementById(id).addEventListener('input', e => {
-    const map = displayMap[id];
-    document.getElementById(map.id).textContent = map.fmt(e.target.value);
-    simulate();
-  });
+const inputIds = ['i-clients','i-new1','i-growth','i-ticket','i-duration','i-financing','i-renewal','i-months'];
+inputIds.forEach(id => {
+  document.getElementById(id).addEventListener('input', simulate);
 });
-
-document.getElementById('i-cac').addEventListener('input', updateLTV);
-document.getElementById('i-margin').addEventListener('input', updateLTV);
 
 simulate();
 </script>
