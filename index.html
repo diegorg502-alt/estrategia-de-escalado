@@ -529,12 +529,14 @@ function simulate() {
 
   // Renovaciones = ciclos medios totales que vive el cliente.
   // Vida en meses = renovaciones × duración del servicio.
-  // Probabilidad de renovar por ciclo (geométrica): 1/(1-p) = R  →  p = (R-1)/R
-  const pCycle = renovations > 1 ? (renovations - 1) / renovations : 0;
-  const cyclesAvg = renovations;
-  const lifeM = renovations * duration;
-  // LTV de un alta nueva = ciclos × ticket de venta
-  const ltv = cyclesAvg * ticketVenta;
+  // Churn mensual SUAVE (geométrica): retención mes a mes = 1 - 1/vida_meses.
+  // Esto asume que la cartera está distribuida en distintas etapas del ciclo
+  // (no todos renuevan a la vez), que es lo realista.
+  const cyclesAvg  = renovations;
+  const lifeM      = renovations * duration;
+  const monthlyRet = lifeM > 1 ? 1 - 1/lifeM : 0;
+  // LTV de un cliente = vida en meses × ticket mensual
+  const ltv = lifeM * ticketMes;
 
   // CAC implícito
   const cacImplicit = altasMes > 0 ? budget0 / altasMes : 0;
@@ -552,52 +554,31 @@ function simulate() {
   document.getElementById('renov-hint').textContent =
     '→ Vida media: ' + fmt1(lifeM) + ' meses · LTV: ' + fmt(ltv) + '€';
 
-  // Cohortes de altas: altasMes en mes 0, crece con el presupuesto
-  const newCohorts = new Array(months).fill(0);
+  // Altas nuevas por mes (la inversión y por tanto las altas crecen al growth)
+  const newAltas = new Array(months).fill(0);
   let na = altasMes;
-  newCohorts[0] = na;
+  newAltas[0] = na;
   for (let m = 1; m < months; m++) {
     na = na * (1 + growth);
-    newCohorts[m] = na;
+    newAltas[m] = na;
   }
 
-  // CARTERA ACTUAL (suavizado): cada cliente vivo aporta ticket_mes recurrente.
-  // Renovación aplicada al final de cada ciclo.
-  const existingAlive = new Array(months).fill(0);
+  // Stock-flow del POOL de clientes activos (cartera + altas acumuladas - churn).
+  // Cada mes: entran las altas y se aplica el churn mensual suave.
+  // Iniciamos con clientesIni (la cartera ya está viva al empezar).
+  const alive = new Array(months).fill(0);
+  let cur = clientesIni;
   for (let m = 0; m < months; m++) {
-    existingAlive[m] = clientesIni * Math.pow(pCycle, Math.floor(m / duration));
+    cur += newAltas[m];     // las altas del mes entran al pool
+    alive[m] = cur;          // pool activo durante el mes
+    cur = cur * monthlyRet;  // churn al final del mes
   }
 
-  // ALTAS NUEVAS (financiación): cada cohorte paga ticket_venta repartido en
-  // los meses de financiación de cada ciclo (decimal soportado), 0 los restantes.
-  const fullFinancing    = Math.floor(financing);
-  const partialFinancing = financing - fullFinancing;
-  const newAlive   = new Array(months).fill(0);
-  const newRevenue = new Array(months).fill(0);
-  for (let k = 0; k < months; k++) {
-    const size = newCohorts[k];
-    if (size <= 0) continue;
-    for (let m = k; m < months; m++) {
-      const elapsed   = m - k;
-      const cycle     = Math.floor(elapsed / duration);
-      const monthIn   = elapsed % duration;
-      const probAlive = Math.pow(pCycle, cycle);
-      const cohortAlive = size * probAlive;
-      newAlive[m] += cohortAlive;
-      if (monthIn < fullFinancing) {
-        newRevenue[m] += cohortAlive * monthlyAlta;
-      } else if (monthIn === fullFinancing && partialFinancing > 0) {
-        newRevenue[m] += cohortAlive * monthlyAlta * partialFinancing;
-      }
-    }
-  }
-
-  // Total mensual: cartera suavizada + caja real de las altas
-  const alive   = new Array(months).fill(0);
+  // Facturación: pool × ticket mensual (todos los activos pagan ticket_mes
+  // mientras estén vivos — modelo recurring)
   const revenue = new Array(months).fill(0);
   for (let m = 0; m < months; m++) {
-    alive[m]   = existingAlive[m] + newAlive[m];
-    revenue[m] = existingAlive[m] * ticketMes + newRevenue[m];
+    revenue[m] = alive[m] * ticketMes;
   }
 
   // Presupuesto mensual: crece al ritmo del growth
