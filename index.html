@@ -134,6 +134,13 @@
     font-size: 0.8rem;
     pointer-events: none;
   }
+  .input-hint {
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent2);
+    letter-spacing: 0.02em;
+  }
 
   .divider {
     height: 1px;
@@ -352,7 +359,13 @@
       </div>
 
       <div class="input-row">
-        <label class="input-label">Crecimiento mensual de altas (%)</label>
+        <label class="input-label">Presupuesto ads inicial (€/mes)</label>
+        <input type="number" class="num-input blue" id="i-budget" value="300" min="0" step="50">
+        <div class="input-hint" id="cac-hint">→ CAC implícito: —</div>
+      </div>
+
+      <div class="input-row">
+        <label class="input-label">Crecimiento del presupuesto/mes (%)</label>
         <input type="number" class="num-input blue" id="i-growth" value="35" min="0" step="1">
       </div>
 
@@ -485,6 +498,7 @@ function fmt1(n) { return (Math.round(n * 10) / 10).toLocaleString('es-ES'); }
 function simulate() {
   const clientesIni  = Math.max(0, getNum('i-clients'));
   const new1         = Math.max(0, getNum('i-new1'));
+  const budget0      = Math.max(0, getNum('i-budget'));
   const growth       = getNum('i-growth') / 100;
   const ticket       = Math.max(0, getNum('i-ticket'));
   const duration     = Math.max(1, Math.floor(getNum('i-duration')));
@@ -493,8 +507,18 @@ function simulate() {
   const renewal      = Math.max(0, Math.min(100, getNum('i-renewal'))) / 100;
   const months       = Math.max(1, Math.floor(getNum('i-months')));
 
+  // CAC implícito = presupuesto inicial / altas medias del mes
+  const cacImplicit = new1 > 0 ? budget0 / new1 : 0;
+  const cacHint = document.getElementById('cac-hint');
+  if (cacHint) {
+    cacHint.textContent = cacImplicit > 0
+      ? '→ CAC implícito: ' + fmt(cacImplicit) + '€/cliente'
+      : '→ CAC implícito: —';
+  }
+
   // cohortes[m] = clientes nuevos que entran en el mes m (0-indexado)
   // Mes 0 incluye los iniciales + los nuevos del mes 1
+  // Mes m+1 escala las altas en proporción al presupuesto (CAC constante)
   const cohortes = new Array(months).fill(0);
   cohortes[0] = clientesIni + new1;
   let np = new1;
@@ -643,7 +667,7 @@ function renderChart() {
   });
 }
 
-const inputIds = ['i-clients','i-new1','i-growth','i-ticket','i-duration','i-financing','i-renewal','i-months'];
+const inputIds = ['i-clients','i-new1','i-budget','i-growth','i-ticket','i-duration','i-financing','i-renewal','i-months'];
 inputIds.forEach(id => {
   document.getElementById(id).addEventListener('input', simulate);
 });
