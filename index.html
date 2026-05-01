@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Ingresos — Altas & Renovaciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --surface: #fafaf8;
+    --surface2: #f4f3ef;
+    --border: rgba(0,0,0,0.09);
+    --border2: rgba(0,0,0,0.15);
+    --text: #1a1a18;
+    --muted: #888880;
+    --accent: #1a5c3a;
+    --accent2: #1e3a6e;
+    --danger: #8b1a1a;
+    --warning: #7a5500;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lora', Georgia, serif;
+    --font-mono: 'Source Code Pro', 'Courier New', monospace;
+  }
+
+  html { font-size: 16px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    border-top: 3px solid var(--text);
+  }
+
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border2);
+  }
+  .header-left h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .header-left h1 span { color: var(--accent); font-style: italic; }
+  .header-left p {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  .badge {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+    margin-top: 6px;
+    letter-spacing: 0.06em;
+  }
+
+  /* LAYOUT MAIN */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 800px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* PANEL CONTROLS */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 1.5rem;
+  }
+  .panel-title {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ctrl-group { margin-bottom: 1.25rem; }
+  .ctrl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+  }
+  .ctrl-name {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: var(--font-body);
+  }
+  .ctrl-val {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-width: 70px;
+    text-align: right;
+  }
+  .ctrl-val.accent { color: var(--accent); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border2);
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px var(--border2);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+  input[type=range].blue::-webkit-slider-thumb { background: var(--accent2); }
+  input[type=range].red::-webkit-slider-thumb { background: var(--danger); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.25rem 0;
+  }
+
+  /* RIGHT COLUMN */
+  .right-col { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  /* METRICS ROW */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.875rem;
+  }
+  @media (max-width: 600px) { .metrics-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 1rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--text);
+    opacity: 0.12;
+  }
+  .metric-card.blue::after { background: var(--accent2); opacity: 0.4; }
+  .metric-card.red::after { background: var(--danger); opacity: 0.4; }
+  .metric-card.warn::after { background: var(--warning); opacity: 0.4; }
+
+  .metric-label {
+    font-size: 0.62rem;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .metric-value.green { color: var(--accent); }
+  .metric-value.blue { color: var(--accent2); }
+  .metric-value.red { color: var(--danger); }
+  .metric-value.warn { color: var(--warning); }
+
+  /* BANNER */
+  .banner {
+    border-radius: 3px;
+    padding: 0.85rem 1.1rem;
+    font-size: 0.82rem;
+    font-family: var(--font-body);
+    line-height: 1.6;
+    border-left: 3px solid;
+    display: none;
+  }
+  .banner.ok {
+    background: #f0f7f3;
+    border-color: var(--accent);
+    color: #2d5a3d;
+    display: block;
+  }
+  .banner.warn {
+    background: #fdf0f0;
+    border-color: var(--danger);
+    color: #6b2020;
+    display: block;
+  }
+  .banner strong { color: var(--accent); font-weight: 600; }
+  .banner.warn strong { color: var(--danger); }
+
+  /* CHART PANEL */
+  .chart-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 1.5rem;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chart-title {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+  }
+  .chart-wrap { position: relative; width: 100%; height: 260px; }
+
+  /* LTV/CAC PANEL */
+  .ltv-panel {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 1.5rem;
+  }
+  .ltv-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.875rem;
+    margin-top: 1rem;
+  }
+  @media (max-width: 600px) { .ltv-grid { grid-template-columns: 1fr 1fr; } }
+  .ltv-item {
+    background: var(--surface2);
+    border-radius: 3px;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--border);
+  }
+  .ltv-item label {
+    font-size: 0.62rem;
+    font-family: var(--font-mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+  .ltv-item .ltv-val {
+    font-size: 1.05rem;
+    font-weight: 600;
+    font-family: var(--font-display);
+  }
+  .ltv-val.ok { color: var(--accent); }
+  .ltv-val.warn { color: var(--warning); }
+  .ltv-val.bad { color: var(--danger); }
+
+  .ltv-input-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+  .ltv-input-group { flex: 1; min-width: 140px; }
+  .ltv-input-group label {
+    font-size: 0.72rem;
+    font-family: var(--font-body);
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .ltv-input-group input[type=number] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .ltv-input-group input[type=number]:focus { border-color: var(--accent); }
+
+  /* TOGGLE */
+  .view-toggle {
+    display: flex;
+    background: var(--surface2);
+    border-radius: 3px;
+    padding: 3px;
+    gap: 3px;
+    border: 1px solid var(--border2);
+  }
+  .toggle-btn {
+    padding: 5px 14px;
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .toggle-btn.active {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border2);
+  }
+
+  footer {
+    margin-top: 3rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="header-left">
+      <h1>Simulador de <span>Ingresos</span><br>Altas & Renovaciones</h1>
+      <p>modelo trimestral · contratos de servicios · paid media</p>
+    </div>
+    <div class="badge">v1.0 · GitHub Pages</div>
+  </header>
+
+  <div class="main-grid">
+
+    <!-- CONTROLES -->
+    <div class="panel">
+      <div class="panel-title">// parámetros del modelo</div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-header">
+          <span class="ctrl-name">Clientes iniciales</span>
+          <span class="ctrl-val accent" id="v-clients">19</span>
+        </div>
+        <input type="range" id="r-clients" min="1" max="80" value="19" step="1">
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-header">
+          <span class="ctrl-name">Precio / cliente (€/mes)</span>
+          <span class="ctrl-val accent" id="v-price">300€</span>
+        </div>
+        <input type="range" id="r-price" min="100" max="2000" value="300" step="50">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-header">
+          <span class="ctrl-name">Renovación trimestral</span>
+          <span class="ctrl-val" id="v-renewal">50%</span>
+        </div>
+        <input type="range" class="red" id="r-renewal" min="10" max="100" value="50" step="5">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-header">
+          <span class="ctrl-name">Budget ads inicial (€/mes)</span>
+          <span class="ctrl-val" id="v-adspend">300€</span>
+        </div>
+        <input type="range" class="blue" id="r-adspend" min="100" max="5000" value="300" step="100">
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-header">
+          <span class="ctrl-name">Clientes nuevos mes 1</span>
+          <span class="ctrl-val" id="v-new1">1.5</span>
+        </div>
+        <input type="range" class="blue" id="r-new1" min="0.5" max="10" value="1.5" step="0.5">
+      </div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-header">
+          <span class="ctrl-name">Crecimiento budget ads/mes</span>
+          <span class="ctrl-val" id="v-growth">35%</span>
+        </div>
+        <input type="range" class="blue" id="r-growth" min="5" max="100" value="35" step="5">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="ctrl-group">
+        <div class="ctrl-header">
+          <span class="ctrl-name">Meses a simular</span>
+          <span class="ctrl-val" id="v-months">24</span>
+        </div>
+        <input type="range" id="r-months" min="6" max="36" value="24" step="1">
+      </div>
+    </div>
+
+    <!-- DERECHA -->
+    <div class="right-col">
+
+      <!-- MÉTRICAS -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">Ingresos mes 1</div>
+          <div class="metric-value" id="m-start">—</div>
+        </div>
+        <div class="metric-card blue">
+          <div class="metric-label">Objetivo ×2</div>
+          <div class="metric-value blue" id="m-target">—</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Mes en que dobla</div>
+          <div class="metric-value green" id="m-month">—</div>
+        </div>
+        <div class="metric-card warn">
+          <div class="metric-label">Clientes al doblar</div>
+          <div class="metric-value warn" id="m-clients">—</div>
+        </div>
+      </div>
+
+      <!-- BANNER -->
+      <div class="banner" id="banner"></div>
+
+      <!-- CHART -->
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div class="chart-title">// evolución mensual</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#1a5c3a"></div>superado</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#1e3a6e"></div>en curso</div>
+              <div class="legend-item"><div class="legend-dot" style="background:#8b1a1a;height:2px;width:14px;border-radius:0"></div>objetivo</div>
+            </div>
+            <div class="view-toggle">
+              <button class="toggle-btn active" id="btn-revenue" onclick="setView('revenue')">€</button>
+              <button class="toggle-btn" id="btn-clients" onclick="setView('clients')">clientes</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="simChart" role="img" aria-label="Evolución mensual de ingresos o clientes según parámetros seleccionados"></canvas>
+        </div>
+      </div>
+
+      <!-- LTV / CAC -->
+      <div class="ltv-panel">
+        <div class="panel-title">// análisis ltv vs cac</div>
+        <div class="ltv-input-row">
+          <div class="ltv-input-group">
+            <label>CAC estimado (€ por cliente)</label>
+            <input type="number" id="i-cac" value="150" min="0" step="10">
+          </div>
+          <div class="ltv-input-group">
+            <label>Margen neto del servicio (%)</label>
+            <input type="number" id="i-margin" value="60" min="1" max="100" step="5">
+          </div>
+        </div>
+        <div class="ltv-grid">
+          <div class="ltv-item">
+            <label>Duración media (meses)</label>
+            <div class="ltv-val" id="ltv-duration">—</div>
+          </div>
+          <div class="ltv-item">
+            <label>LTV bruto</label>
+            <div class="ltv-val" id="ltv-bruto">—</div>
+          </div>
+          <div class="ltv-item">
+            <label>LTV neto</label>
+            <div class="ltv-val" id="ltv-neto">—</div>
+          </div>
+          <div class="ltv-item">
+            <label>CAC introducido</label>
+            <div class="ltv-val" id="ltv-cac">—</div>
+          </div>
+          <div class="ltv-item">
+            <label>Ratio LTV/CAC</label>
+            <div class="ltv-val" id="ltv-ratio">—</div>
+          </div>
+          <div class="ltv-item">
+            <label>Veredicto</label>
+            <div class="ltv-val" id="ltv-verdict">—</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>simulador de ingresos · altas & renovaciones trimestrales · uso interno</footer>
+</div>
+
+<script>
+let currentView = 'revenue';
+let chartInst = null;
+let simData = { revenue: [], clients: [], target: 0, months: 24 };
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('btn-revenue').classList.toggle('active', v === 'revenue');
+  document.getElementById('btn-clients').classList.toggle('active', v === 'clients');
+  renderChart();
+}
+
+function get(id) { return parseFloat(document.getElementById(id).value); }
+
+function fmt(n) { return n.toLocaleString('es-ES'); }
+
+function simulate() {
+  const baseClients = get('r-clients');
+  const price = get('r-price');
+  const renewalRate = get('r-renewal') / 100;
+  const budgetGrowthRate = get('r-growth') / 100;
+  const new1 = get('r-new1');
+  const months = get('r-months');
+
+  let activeClients = baseClients;
+  const revenueArr = [];
+  const clientArr = [];
+  let newPerMonth = new1;
+
+  for (let m = 1; m <= months; m++) {
+    if (m > 1) newPerMonth = newPerMonth * (1 + budgetGrowthRate * 0.5);
+    activeClients += newPerMonth;
+    if (m % 3 === 0) {
+      const churned = activeClients * (1 - renewalRate);
+      activeClients = Math.max(0, activeClients - churned);
+    }
+    revenueArr.push(Math.round(activeClients * price));
+    clientArr.push(Math.round(activeClients * 10) / 10);
+  }
+
+  const startRevenue = revenueArr[0];
+  const targetRevenue = startRevenue * 2;
+
+  let doubleMonth = null;
+  let doubleClients = null;
+  for (let i = 0; i < revenueArr.length; i++) {
+    if (revenueArr[i] >= targetRevenue) {
+      doubleMonth = i + 1;
+      doubleClients = Math.round(clientArr[i]);
+      break;
+    }
+  }
+
+  simData = { revenue: revenueArr, clients: clientArr, target: targetRevenue, months };
+
+  document.getElementById('m-start').textContent = fmt(startRevenue) + '€';
+  document.getElementById('m-target').textContent = fmt(Math.round(targetRevenue)) + '€';
+  document.getElementById('m-month').textContent = doubleMonth ? 'Mes ' + doubleMonth : '+' + months + 'm';
+  document.getElementById('m-clients').textContent = doubleClients ? doubleClients + ' clientes' : 'No alcanza';
+
+  const banner = document.getElementById('banner');
+  if (doubleMonth) {
+    banner.className = 'banner ok';
+    banner.innerHTML = '→ Con estos parámetros los ingresos se duplican en el <strong>mes ' + doubleMonth + '</strong>. La renovación y el crecimiento del budget son las palancas clave.';
+  } else {
+    banner.className = 'banner warn';
+    banner.innerHTML = '→ Con el churn actual, los ingresos <strong>no llegan a duplicarse</strong> en ' + months + ' meses. Sube la renovación o acelera el crecimiento del budget.';
+  }
+
+  updateLTV();
+  renderChart();
+}
+
+function renderChart() {
+  const labels = Array.from({ length: simData.months }, (_, i) => 'M' + (i + 1));
+  const isRevenue = currentView === 'revenue';
+  const data = isRevenue ? simData.revenue : simData.clients;
+  const target = isRevenue ? simData.target : null;
+  const targetLine = target ? Array(simData.months).fill(Math.round(target)) : null;
+
+  const datasets = [
+    {
+      label: isRevenue ? 'Ingresos (€)' : 'Clientes activos',
+      data,
+      backgroundColor: data.map(v => (target && v >= target) ? 'rgba(26,92,58,0.85)' : 'rgba(30,58,110,0.65)'),
+      borderRadius: 4,
+      order: 2
+    }
+  ];
+
+  if (targetLine) {
+    datasets.push({
+      label: 'Objetivo ×2',
+      data: targetLine,
+      type: 'line',
+      borderColor: '#8b1a1a',
+      borderWidth: 1.5,
+      borderDash: [5, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 1
+    });
+  }
+
+  if (chartInst) chartInst.destroy();
+  chartInst = new Chart(document.getElementById('simChart'), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#ffffff',
+          borderColor: 'rgba(0,0,0,0.15)',
+          borderWidth: 1,
+          titleColor: '#888880',
+          bodyColor: '#1a1a18',
+          titleFont: { family: "'Source Code Pro', monospace", size: 11 },
+          bodyFont: { family: "'Source Code Pro', monospace", size: 12 },
+          callbacks: {
+            label: ctx => {
+              if (ctx.dataset.label === 'Objetivo ×2') return 'Objetivo: ' + fmt(ctx.raw) + (isRevenue ? '€' : '');
+              return isRevenue ? fmt(ctx.raw) + '€' : ctx.raw + ' clientes';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: '#888880',
+            font: { family: "'Source Code Pro', monospace", size: 10 },
+            callback: v => isRevenue ? fmt(v) + '€' : v
+          },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          border: { color: 'transparent' }
+        },
+        x: {
+          ticks: {
+            color: '#888880',
+            font: { family: "'Source Code Pro', monospace", size: 10 },
+            autoSkip: true,
+            maxTicksLimit: 13
+          },
+          grid: { display: false },
+          border: { color: 'rgba(0,0,0,0.12)' }
+        }
+      }
+    }
+  });
+}
+
+function updateLTV() {
+  const renewalRate = get('r-renewal') / 100;
+  const price = get('r-price');
+  const cac = parseFloat(document.getElementById('i-cac').value) || 0;
+  const margin = parseFloat(document.getElementById('i-margin').value) / 100 || 0.6;
+
+  const churnRate = 1 - Math.pow(renewalRate, 1/3);
+  const duration = churnRate > 0 ? Math.round((1 / churnRate) * 10) / 10 : 99;
+  const ltvBruto = Math.round(duration * price);
+  const ltvNeto = Math.round(ltvBruto * margin);
+  const ratio = cac > 0 ? Math.round((ltvNeto / cac) * 10) / 10 : 0;
+
+  document.getElementById('ltv-duration').textContent = duration + ' meses';
+  document.getElementById('ltv-bruto').textContent = fmt(ltvBruto) + '€';
+  document.getElementById('ltv-neto').textContent = fmt(ltvNeto) + '€';
+  document.getElementById('ltv-cac').textContent = fmt(cac) + '€';
+
+  const ratioEl = document.getElementById('ltv-ratio');
+  const verdictEl = document.getElementById('ltv-verdict');
+  ratioEl.textContent = ratio + 'x';
+
+  if (ratio >= 3) {
+    ratioEl.className = 'ltv-val ok';
+    verdictEl.textContent = 'ESCALA';
+    verdictEl.className = 'ltv-val ok';
+  } else if (ratio >= 1.5) {
+    ratioEl.className = 'ltv-val warn';
+    verdictEl.textContent = 'AJUSTA';
+    verdictEl.className = 'ltv-val warn';
+  } else {
+    ratioEl.className = 'ltv-val bad';
+    verdictEl.textContent = 'REVISA';
+    verdictEl.className = 'ltv-val bad';
+  }
+}
+
+const rangeIds = ['r-clients','r-price','r-renewal','r-adspend','r-new1','r-growth','r-months'];
+const displayMap = {
+  'r-clients': { id: 'v-clients', fmt: v => v },
+  'r-price':   { id: 'v-price',   fmt: v => v + '€' },
+  'r-renewal': { id: 'v-renewal', fmt: v => v + '%' },
+  'r-adspend': { id: 'v-adspend', fmt: v => v + '€' },
+  'r-new1':    { id: 'v-new1',    fmt: v => v },
+  'r-growth':  { id: 'v-growth',  fmt: v => v + '%' },
+  'r-months':  { id: 'v-months',  fmt: v => v },
+};
+
+rangeIds.forEach(id => {
+  document.getElementById(id).addEventListener('input', e => {
+    const map = displayMap[id];
+    document.getElementById(map.id).textContent = map.fmt(e.target.value);
+    simulate();
+  });
+});
+
+document.getElementById('i-cac').addEventListener('input', updateLTV);
+document.getElementById('i-margin').addEventListener('input', updateLTV);
+
+simulate();
+</script>
+</body>
+</html>
