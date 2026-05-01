@@ -500,10 +500,12 @@ function simulate() {
   const multiplier   = Math.max(1, getNum('i-multiplier'));
   const months       = Math.max(1, Math.floor(getNum('i-months')));
 
-  // Probabilidad de renovar por ciclo (geométrica): p = R / (R+1)
-  const pCycle = renovations / (renovations + 1);
-  const cyclesAvg = 1 + renovations;
-  const lifeM = cyclesAvg * duration;
+  // Renovaciones = ciclos medios totales que vive el cliente.
+  // Vida en meses = renovaciones × duración del servicio.
+  // Probabilidad de renovar por ciclo (geométrica): 1/(1-p) = R  →  p = (R-1)/R
+  const pCycle = renovations > 1 ? (renovations - 1) / renovations : 0;
+  const cyclesAvg = renovations;
+  const lifeM = renovations * duration;
   const ltv = lifeM * ticketMes + ticketAlta;
 
   // CAC implícito
