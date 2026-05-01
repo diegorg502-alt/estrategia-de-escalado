@@ -437,7 +437,6 @@
               <div class="legend-item"><div class="legend-dot" style="background:#1a5c3a"></div>superado</div>
               <div class="legend-item"><div class="legend-dot" style="background:#1e3a6e"></div>en curso</div>
               <div class="legend-item"><div class="legend-dot" style="background:#8b1a1a;height:2px;width:14px;border-radius:0"></div>objetivo</div>
-              <div class="legend-item"><div class="legend-dot" style="background:#7a5500;height:2px;width:14px;border-radius:0"></div>presupuesto</div>
             </div>
             <div class="view-toggle">
               <button class="toggle-btn active" id="btn-revenue" onclick="setView('revenue')">€</button>
@@ -447,6 +446,16 @@
         </div>
         <div class="chart-wrap">
           <canvas id="simChart" role="img" aria-label="Evolución mensual de ingresos o clientes activos"></canvas>
+        </div>
+      </div>
+
+      <!-- INVERSIÓN PUBLICITARIA -->
+      <div class="chart-panel">
+        <div class="chart-header">
+          <div class="chart-title">// inversión publicitaria · ad spend al mes</div>
+        </div>
+        <div class="chart-wrap" style="height:180px">
+          <canvas id="budgetChart" role="img" aria-label="Evolución mensual del presupuesto de ads"></canvas>
         </div>
       </div>
 
@@ -478,7 +487,8 @@
 <script>
 let currentView = 'revenue';
 let chartInst = null;
-let simData = { revenue: [], clients: [], target: 0, months: 24, multiplier: 2 };
+let budgetChartInst = null;
+let simData = { revenue: [], clients: [], target: 0, months: 24, multiplier: 2, budget: [] };
 
 function setView(v) {
   currentView = v;
@@ -635,6 +645,7 @@ function simulate() {
   document.getElementById('c-ltv').textContent    = fmt(ltv) + '€';
 
   renderChart();
+  renderBudgetChart();
 }
 
 function renderChart() {
@@ -671,21 +682,6 @@ function renderChart() {
     });
   }
 
-  if (isRevenue && simData.budget) {
-    datasets.push({
-      label: 'Presupuesto',
-      data: simData.budget.map(v => Math.round(v)),
-      type: 'line',
-      yAxisID: 'y1',
-      borderColor: '#7a5500',
-      borderWidth: 2,
-      borderDash: [3, 3],
-      pointRadius: 0,
-      fill: false,
-      order: 0
-    });
-  }
-
   if (chartInst) chartInst.destroy();
   chartInst = new Chart(document.getElementById('simChart'), {
     type: 'bar',
@@ -706,8 +702,7 @@ function renderChart() {
           callbacks: {
             label: ctx => {
               const lbl = ctx.dataset.label || '';
-              if (lbl.startsWith('Objetivo'))   return 'Objetivo: '   + fmt(ctx.raw) + (isRevenue ? '€' : '');
-              if (lbl === 'Presupuesto')        return 'Presupuesto: ' + fmt(ctx.raw) + '€';
+              if (lbl.startsWith('Objetivo')) return 'Objetivo: ' + fmt(ctx.raw) + (isRevenue ? '€' : '');
               return isRevenue ? fmt(ctx.raw) + '€' : ctx.raw + ' clientes';
             }
           }
@@ -715,7 +710,6 @@ function renderChart() {
       },
       scales: {
         y: {
-          position: 'left',
           ticks: {
             color: '#888880',
             font: { family: "'Source Code Pro', monospace", size: 10 },
@@ -724,16 +718,62 @@ function renderChart() {
           grid: { color: 'rgba(0,0,0,0.05)' },
           border: { color: 'transparent' }
         },
-        y1: {
-          display: isRevenue,
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          border: { color: 'transparent' },
+        x: {
           ticks: {
-            color: '#7a5500',
+            color: '#888880',
+            font: { family: "'Source Code Pro', monospace", size: 10 },
+            autoSkip: true,
+            maxTicksLimit: 13
+          },
+          grid: { display: false },
+          border: { color: 'rgba(0,0,0,0.12)' }
+        }
+      }
+    }
+  });
+}
+
+function renderBudgetChart() {
+  const labels = Array.from({ length: simData.months }, (_, i) => 'M' + (i + 1));
+  const data = (simData.budget || []).map(v => Math.round(v));
+
+  if (budgetChartInst) budgetChartInst.destroy();
+  budgetChartInst = new Chart(document.getElementById('budgetChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Presupuesto ads',
+        data,
+        backgroundColor: 'rgba(122, 85, 0, 0.75)',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#ffffff',
+          borderColor: 'rgba(0,0,0,0.15)',
+          borderWidth: 1,
+          titleColor: '#888880',
+          bodyColor: '#7a5500',
+          titleFont: { family: "'Source Code Pro', monospace", size: 11 },
+          bodyFont:  { family: "'Source Code Pro', monospace", size: 12 },
+          callbacks: { label: ctx => fmt(ctx.raw) + '€' }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: '#888880',
             font: { family: "'Source Code Pro', monospace", size: 10 },
             callback: v => fmt(v) + '€'
-          }
+          },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          border: { color: 'transparent' }
         },
         x: {
           ticks: {
