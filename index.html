@@ -568,28 +568,27 @@ function simulate() {
     '→ Vida media: ' + fmt1(lifeM) + ' meses · LTV: ' + fmt(ltv) + '€';
 
   // Presupuesto y altas: se mueven juntos (CAC implícito constante).
-  // El presupuesto crece a `growth` mensual hasta tocar el techo `budgetMax`,
-  // y las altas escalan en proporción al presupuesto.
+  // El presupuesto crece libremente al ritmo del growth — no hay cap directo.
+  // El CAC máximo es solo informativo (referencia teórica si se enforzara).
   const altasPerBudget = budget0 > 0 ? altasMes / budget0 : 0;
   const budgetArr = new Array(months).fill(0);
   const newAltas  = new Array(months).fill(0);
   let bud = budget0;
-  if (budgetMax > 0 && bud > budgetMax) bud = budgetMax;
   budgetArr[0] = bud;
   newAltas[0]  = bud * altasPerBudget;
   for (let m = 1; m < months; m++) {
     bud = bud * (1 + growth);
-    if (budgetMax > 0 && bud > budgetMax) bud = budgetMax;
     budgetArr[m] = bud;
     newAltas[m]  = bud * altasPerBudget;
   }
 
-  // Hint del CAC máximo: tope de presupuesto y altas implicadas con CAC actual
+  // Hint informativo: si quisieras limitar el CAC a ese valor, qué inversión
+  // máxima y altas/mes te daría manteniendo el CAC actual.
   const altasMax    = budgetMax * altasPerBudget;
   const cacMaxHint  = document.getElementById('cac-max-hint');
   if (cacMaxHint) {
     cacMaxHint.textContent = budgetMax > 0
-      ? '→ Tope inversión: ' + fmt(budgetMax) + '€/mes (' + fmt1(altasMax) + ' altas/mes)'
+      ? '→ Referencia: hasta ' + fmt(budgetMax) + '€/mes / ' + fmt1(altasMax) + ' altas/mes'
       : '→ —';
   }
 
