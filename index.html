@@ -42,7 +42,6 @@
     padding: 2.5rem 1.5rem 4rem;
   }
 
-  /* HEADER */
   header {
     margin-bottom: 2.5rem;
     padding-bottom: 1.5rem;
@@ -58,7 +57,6 @@
   }
   header h1 span { color: var(--accent); font-style: italic; }
 
-  /* LAYOUT MAIN */
   .main-grid {
     display: grid;
     grid-template-columns: 340px 1fr;
@@ -69,7 +67,6 @@
     .main-grid { grid-template-columns: 1fr; }
   }
 
-  /* PANEL CONTROLS */
   .panel {
     background: var(--surface);
     border: 1px solid var(--border2);
@@ -118,8 +115,8 @@
   }
   .num-input:focus { border-color: var(--accent); }
   .num-input.accent { border-left: 3px solid var(--accent); padding-left: 12px; }
-  .num-input.blue { border-left: 3px solid var(--accent2); padding-left: 12px; }
-  .num-input.red { border-left: 3px solid var(--danger); padding-left: 12px; }
+  .num-input.blue   { border-left: 3px solid var(--accent2); padding-left: 12px; }
+  .num-input.red    { border-left: 3px solid var(--danger); padding-left: 12px; }
   .input-hint {
     margin-top: 0.4rem;
     font-family: var(--font-mono);
@@ -134,10 +131,8 @@
     margin: 1.25rem 0;
   }
 
-  /* RIGHT COLUMN */
   .right-col { display: flex; flex-direction: column; gap: 1.25rem; }
 
-  /* METRICS ROW */
   .metrics-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -162,7 +157,7 @@
     opacity: 0.12;
   }
   .metric-card.blue::after { background: var(--accent2); opacity: 0.4; }
-  .metric-card.red::after { background: var(--danger); opacity: 0.4; }
+  .metric-card.red::after  { background: var(--danger); opacity: 0.4; }
   .metric-card.warn::after { background: var(--warning); opacity: 0.4; }
 
   .metric-label {
@@ -182,11 +177,10 @@
     letter-spacing: -0.01em;
   }
   .metric-value.green { color: var(--accent); }
-  .metric-value.blue { color: var(--accent2); }
-  .metric-value.red { color: var(--danger); }
-  .metric-value.warn { color: var(--warning); }
+  .metric-value.blue  { color: var(--accent2); }
+  .metric-value.red   { color: var(--danger); }
+  .metric-value.warn  { color: var(--warning); }
 
-  /* BANNER */
   .banner {
     border-radius: 3px;
     padding: 0.85rem 1.1rem;
@@ -211,7 +205,6 @@
   .banner strong { color: var(--accent); font-weight: 600; }
   .banner.warn strong { color: var(--danger); }
 
-  /* CHART PANEL */
   .chart-panel {
     background: var(--surface);
     border: 1px solid var(--border2);
@@ -245,7 +238,6 @@
   .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
   .chart-wrap { position: relative; width: 100%; height: 280px; }
 
-  /* CLIENTE MEDIO */
   .client-panel {
     background: var(--surface);
     border: 1px solid var(--border2);
@@ -281,7 +273,6 @@
     color: var(--accent);
   }
 
-  /* TOGGLE */
   .view-toggle {
     display: flex;
     background: var(--surface2);
@@ -335,25 +326,29 @@
       <div class="panel-subtitle">Cartera actual</div>
 
       <div class="input-row">
-        <label class="input-label">Clientes iniciales</label>
-        <input type="number" class="num-input accent" id="i-clients" value="19" min="0" step="1">
+        <label class="input-label">Facturación mensual actual (€)</label>
+        <input type="number" class="num-input accent" id="i-revenue" value="7770" min="0" step="100">
       </div>
 
       <div class="input-row">
-        <label class="input-label">Ticket medio por cliente al mes (€)</label>
-        <input type="number" class="num-input accent" id="i-ticket-mes" value="133" min="0" step="10">
-        <div class="input-hint" id="ticket-hint">→ Hoy te dejan —</div>
+        <label class="input-label">Clientes activos</label>
+        <input type="number" class="num-input accent" id="i-clients" value="70" min="0" step="1">
+        <div class="input-hint" id="ticket-hint">→ —</div>
       </div>
+
+      <div class="divider"></div>
+
+      <div class="panel-subtitle">Servicio y retención</div>
 
       <div class="input-row">
         <label class="input-label">Renovaciones medias por cliente</label>
-        <input type="number" class="num-input red" id="i-renovations" value="1.5" min="0" step="0.1">
-        <div class="input-hint" id="renov-hint">→ Vida media: —</div>
+        <input type="number" class="num-input red" id="i-renovations" value="2" min="0" step="0.1">
       </div>
 
       <div class="input-row">
         <label class="input-label">Duración del servicio (meses)</label>
         <input type="number" class="num-input accent" id="i-duration" value="6" min="1" step="1">
+        <div class="input-hint" id="service-hint">→ —</div>
       </div>
 
       <div class="divider"></div>
@@ -361,46 +356,38 @@
       <div class="panel-subtitle">Adquisición</div>
 
       <div class="input-row">
-        <label class="input-label">Presupuesto ads al mes (€)</label>
-        <input type="number" class="num-input blue" id="i-budget" value="300" min="0" step="50">
-        <div class="input-hint" id="cac-hint">→ CAC implícito: —</div>
+        <label class="input-label">Presupuesto ads/mes (€)</label>
+        <input type="number" class="num-input blue" id="i-budget" value="1600" min="0" step="50">
       </div>
 
       <div class="input-row">
-        <label class="input-label">Altas nuevas al mes (media)</label>
-        <input type="number" class="num-input blue" id="i-altas" value="2" min="0" step="0.5">
-      </div>
-
-      <div class="input-row">
-        <label class="input-label">Ticket de venta (€)</label>
-        <input type="number" class="num-input blue" id="i-ticket-alta" value="600" min="0" step="50">
-        <div class="input-hint" id="alta-hint">→ —</div>
-      </div>
-
-      <div class="input-row">
-        <label class="input-label">Meses de financiación (media)</label>
-        <input type="number" class="num-input blue" id="i-financing" value="3" min="1" step="0.5">
-      </div>
-
-      <div class="input-row">
-        <label class="input-label">Crecimiento del presupuesto/mes (%)</label>
-        <input type="number" class="num-input blue" id="i-growth" value="35" min="0" step="1">
-      </div>
-
-      <div class="input-row">
-        <label class="input-label">Coste máximo por cliente (€)</label>
-        <input type="number" class="num-input blue" id="i-cac-max" value="500" min="0" step="50">
-        <div class="input-hint" id="cac-max-hint">→ —</div>
+        <label class="input-label">Altas mensuales (media)</label>
+        <input type="number" class="num-input blue" id="i-altas" value="8" min="0" step="0.5">
+        <div class="input-hint" id="cac-hint">→ —</div>
       </div>
 
       <div class="divider"></div>
 
-      <div class="panel-subtitle">Simulación</div>
+      <div class="panel-subtitle">Objetivo</div>
 
       <div class="input-row">
         <label class="input-label">Multiplicador objetivo (×)</label>
         <input type="number" class="num-input" id="i-multiplier" value="2" min="1" step="0.5">
       </div>
+
+      <div class="input-row">
+        <label class="input-label">Crecimiento del presupuesto/mes (%)</label>
+        <input type="number" class="num-input blue" id="i-growth" value="20" min="0" step="1">
+      </div>
+
+      <div class="input-row">
+        <label class="input-label">ROAS mínimo (×)</label>
+        <input type="number" class="num-input" id="i-roas-min" value="2" min="0" step="0.5">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="panel-subtitle">Simulación</div>
 
       <div class="input-row">
         <label class="input-label">Meses a simular</label>
@@ -543,106 +530,72 @@ function fmt(n)  { return Math.round(n).toLocaleString('es-ES'); }
 function fmt1(n) { return (Math.round(n * 10) / 10).toLocaleString('es-ES'); }
 
 function simulate() {
+  // INPUTS
+  const facturacion  = Math.max(0, getNum('i-revenue'));
   const clientesIni  = Math.max(0, getNum('i-clients'));
-  const ticketMes    = Math.max(0, getNum('i-ticket-mes'));
   const renovations  = Math.max(0, getNum('i-renovations'));
   const duration     = Math.max(1, Math.floor(getNum('i-duration')));
   const budget0      = Math.max(0, getNum('i-budget'));
   const altasMes     = Math.max(0, getNum('i-altas'));
-  const ticketVenta  = Math.max(0, getNum('i-ticket-alta'));
-  const financing    = Math.max(1, Math.min(duration, getNum('i-financing')));
-  const growth       = getNum('i-growth') / 100;
-  const cacMax       = Math.max(0, getNum('i-cac-max'));
   const multiplier   = Math.max(1, getNum('i-multiplier'));
+  const growth       = getNum('i-growth') / 100;
+  const roasMin      = Math.max(0, getNum('i-roas-min'));
   const months       = Math.max(1, Math.floor(getNum('i-months')));
 
-  // CAC actual (implícito) y tope de presupuesto derivado.
-  // Si el cliente actual cuesta CAC0 y aceptamos hasta CAC_max, escalamos
-  // proporcionalmente: budgetMax = budget0 × CAC_max / CAC_actual.
-  const cacInitial = altasMes > 0 ? budget0 / altasMes : 0;
-  const budgetMax  = (cacInitial > 0 && cacMax > 0) ? budget0 * cacMax / cacInitial : 0;
-
-  // Pago mensual durante financiación = ticket de venta / meses de financiación
-  const monthlyAlta = financing > 0 ? ticketVenta / financing : 0;
-  const altaHint = document.getElementById('alta-hint');
-  if (altaHint) {
-    altaHint.textContent = monthlyAlta > 0
-      ? '→ ' + fmt(monthlyAlta) + '€/mes durante ' + fmt1(financing) + ' meses'
-      : '→ —';
-  }
-
-  // Renovaciones = ciclos medios totales que vive el cliente.
-  // Vida en meses = renovaciones × duración del servicio.
-  // Churn mensual SUAVE (geométrica): retención mes a mes = 1 - 1/vida_meses.
-  // Esto asume que la cartera está distribuida en distintas etapas del ciclo
-  // (no todos renuevan a la vez), que es lo realista.
-  const cyclesAvg  = renovations;
-  const lifeM      = renovations * duration;
-  const monthlyRet = lifeM > 1 ? 1 - 1/lifeM : 0;
-  // LTV de un cliente = vida en meses × ticket mensual
-  const ltv = lifeM * ticketMes;
-
-  // CAC implícito
-  const cacImplicit = altasMes > 0 ? budget0 / altasMes : 0;
-  document.getElementById('cac-hint').textContent = cacImplicit > 0
-    ? '→ CAC implícito: ' + fmt(cacImplicit) + '€/cliente'
-    : '→ CAC implícito: —';
-
-  // Facturación actual de cartera
-  const currentMonthly = clientesIni * ticketMes;
-  document.getElementById('ticket-hint').textContent = currentMonthly > 0
-    ? '→ Hoy te dejan ' + fmt(currentMonthly) + '€/mes'
-    : '→ Hoy te dejan —';
-
-  // Hint de renovaciones / vida
-  document.getElementById('renov-hint').textContent =
-    '→ Vida media: ' + fmt1(lifeM) + ' meses · LTV: ' + fmt(ltv) + '€';
-
-  // Presupuesto y altas: se mueven juntos (CAC implícito constante).
-  // El presupuesto crece libremente al ritmo del growth — no hay cap directo.
-  // El CAC máximo es solo informativo (referencia teórica si se enforzara).
+  // DERIVADOS
+  const ticketMes      = clientesIni > 0 ? facturacion / clientesIni : 0;
+  const lifeM          = renovations * duration;
+  const monthlyRet     = lifeM > 1 ? 1 - 1/lifeM : 0;
+  const churnRate      = 1 - monthlyRet;
+  const cyclesAvg      = renovations;
+  const ltv            = lifeM * ticketMes;
+  const cacImplicit    = altasMes > 0 ? budget0 / altasMes : 0;
   const altasPerBudget = budget0 > 0 ? altasMes / budget0 : 0;
+
+  // HINTS
+  document.getElementById('ticket-hint').textContent = ticketMes > 0
+    ? '→ Ticket medio: ' + fmt(ticketMes) + '€/cliente · Hoy te dejan: ' + fmt(facturacion) + '€/mes'
+    : '→ —';
+  document.getElementById('service-hint').textContent = lifeM > 0
+    ? '→ Vida media: ' + fmt1(lifeM) + ' meses · LTV: ' + fmt(ltv) + '€ · Churn: ' + fmt1(churnRate * 100) + '%/mes'
+    : '→ —';
+  document.getElementById('cac-hint').textContent = cacImplicit > 0
+    ? '→ CAC: ' + fmt(cacImplicit) + '€/cliente'
+    : '→ —';
+
+  // SIMULACIÓN con tope ROAS
+  // Cada mes, si subir el presupuesto haría que el ROAS (revenue/budget)
+  // bajara del mínimo aceptable, congelamos el presupuesto.
   const budgetArr = new Array(months).fill(0);
   const newAltas  = new Array(months).fill(0);
+  const alive     = new Array(months).fill(0);
+  const revenue   = new Array(months).fill(0);
+
   let bud = budget0;
-  budgetArr[0] = bud;
-  newAltas[0]  = bud * altasPerBudget;
-  for (let m = 1; m < months; m++) {
-    bud = bud * (1 + growth);
+  let poolEnd = clientesIni;
+
+  for (let m = 0; m < months; m++) {
+    if (m > 0) {
+      const newBud = bud * (1 + growth);
+      const newAltaCount = newBud * altasPerBudget;
+      const tentPool = poolEnd + newAltaCount;
+      const tentRev = tentPool * ticketMes;
+      const tentROAS = newBud > 0 ? tentRev / newBud : Infinity;
+      if (roasMin <= 0 || tentROAS >= roasMin) {
+        bud = newBud;
+      }
+    }
+    const altaCount = bud * altasPerBudget;
+    const poolThisMonth = poolEnd + altaCount;
     budgetArr[m] = bud;
-    newAltas[m]  = bud * altasPerBudget;
+    newAltas[m]  = altaCount;
+    alive[m]     = poolThisMonth;
+    revenue[m]   = poolThisMonth * ticketMes;
+    poolEnd = poolThisMonth * monthlyRet;
   }
 
-  // Hint informativo: si quisieras limitar el CAC a ese valor, qué inversión
-  // máxima y altas/mes te daría manteniendo el CAC actual.
-  const altasMax    = budgetMax * altasPerBudget;
-  const cacMaxHint  = document.getElementById('cac-max-hint');
-  if (cacMaxHint) {
-    cacMaxHint.textContent = budgetMax > 0
-      ? '→ Referencia: hasta ' + fmt(budgetMax) + '€/mes / ' + fmt1(altasMax) + ' altas/mes'
-      : '→ —';
-  }
-
-  // Stock-flow del POOL de clientes activos (cartera + altas acumuladas - churn).
-  // Cada mes: entran las altas y se aplica el churn mensual suave.
-  // Iniciamos con clientesIni (la cartera ya está viva al empezar).
-  const alive = new Array(months).fill(0);
-  let cur = clientesIni;
-  for (let m = 0; m < months; m++) {
-    cur += newAltas[m];     // las altas del mes entran al pool
-    alive[m] = cur;          // pool activo durante el mes
-    cur = cur * monthlyRet;  // churn al final del mes
-  }
-
-  // Facturación: pool × ticket mensual (todos los activos pagan ticket_mes
-  // mientras estén vivos — modelo recurring)
-  const revenue = new Array(months).fill(0);
-  for (let m = 0; m < months; m++) {
-    revenue[m] = alive[m] * ticketMes;
-  }
-
-  // Métricas multiplicador
-  const startRevenue = revenue[0];
+  // MÉTRICAS objetivo
+  const startRevenue  = revenue[0];
   const targetRevenue = startRevenue * multiplier;
   let multipleMonth = null, multipleClients = null;
   for (let i = 0; i < revenue.length; i++) {
@@ -668,11 +621,11 @@ function simulate() {
     banner.innerHTML = '→ Con estos parámetros los ingresos se multiplican por <strong>' + multLabel + '</strong> en el <strong>mes ' + multipleMonth + '</strong>.';
   } else {
     banner.className = 'banner warn';
-    banner.innerHTML = '→ Con estos parámetros los ingresos <strong>no llegan a ' + multLabel + '</strong> en ' + months + ' meses. Sube las renovaciones, las altas, el ticket o el presupuesto.';
+    banner.innerHTML = '→ Con estos parámetros los ingresos <strong>no llegan a ' + multLabel + '</strong> en ' + months + ' meses. Sube el growth, la retención o baja el ROAS mínimo.';
   }
 
-  // Cliente medio
-  const churnCarteraMes = clientesIni * (1 - monthlyRet);
+  // CLIENTE MEDIO
+  const churnCarteraMes = clientesIni * churnRate;
   const surplusM1 = altasMes - churnCarteraMes;
   document.getElementById('c-life').textContent    = fmt1(lifeM) + ' meses';
   document.getElementById('c-cycles').textContent  = fmt1(cyclesAvg) + ' ciclos';
@@ -680,22 +633,20 @@ function simulate() {
   document.getElementById('c-churn').textContent   = fmt1(churnCarteraMes) + ' / mes';
   document.getElementById('c-surplus').textContent = (surplusM1 >= 0 ? '+' : '') + fmt1(surplusM1) + ' / mes';
 
-  // MODO INVERSO: encontrar el growth necesario para multiplicar en N meses.
-  // baseline = ingresos mes 1 (pool[0] × ticket_mes), target = baseline × multiplicador.
-  // Búsqueda binaria sobre el growth para encontrar el mínimo que alcanza el target en M meses.
+  // MODO INVERSO: encontrar growth necesario para multiplicar en N meses (sin tope ROAS).
   const targetMonths = Math.max(1, Math.floor(getNum('i-target-months')));
   const baseRev0     = (clientesIni + altasMes) * ticketMes;
   const targetRev0   = baseRev0 * multiplier;
 
   function simAtMonth(g, m) {
-    let bud = budget0;
+    let b = budget0;
     let pool = clientesIni;
     let cumul = 0;
     for (let i = 0; i <= m; i++) {
-      if (i > 0) bud = bud * (1 + g);
-      cumul += bud;
-      pool += bud * altasPerBudget;
-      if (i === m) return { pool, bud, cumul };
+      if (i > 0) b = b * (1 + g);
+      cumul += b;
+      pool += b * altasPerBudget;
+      if (i === m) return { pool, bud: b, cumul };
       pool = pool * monthlyRet;
     }
     return { pool: 0, bud: 0, cumul: 0 };
@@ -878,9 +829,10 @@ function renderBudgetChart() {
 }
 
 const inputIds = [
-  'i-clients','i-ticket-mes','i-renovations','i-duration',
-  'i-budget','i-altas','i-ticket-alta','i-financing','i-growth','i-cac-max',
-  'i-multiplier','i-months','i-target-months'
+  'i-revenue','i-clients','i-renovations','i-duration',
+  'i-budget','i-altas',
+  'i-multiplier','i-growth','i-roas-min','i-months',
+  'i-target-months'
 ];
 inputIds.forEach(id => {
   document.getElementById(id).addEventListener('input', simulate);
