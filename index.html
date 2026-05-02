@@ -594,9 +594,9 @@ function simulate() {
     poolEnd = poolThisMonth * monthlyRet;
   }
 
-  // MÉTRICAS objetivo
-  const startRevenue  = revenue[0];
-  const targetRevenue = startRevenue * multiplier;
+  // MÉTRICAS objetivo: doblar respecto a la facturación ACTUAL (hoy), no respecto al mes 1 simulado.
+  const startRevenue  = facturacion;
+  const targetRevenue = facturacion * multiplier;
   let multipleMonth = null, multipleClients = null;
   for (let i = 0; i < revenue.length; i++) {
     if (revenue[i] >= targetRevenue && targetRevenue > 0) {
@@ -634,9 +634,9 @@ function simulate() {
   document.getElementById('c-surplus').textContent = (surplusM1 >= 0 ? '+' : '') + fmt1(surplusM1) + ' / mes';
 
   // MODO INVERSO: encontrar growth necesario para multiplicar en N meses (sin tope ROAS).
+  // Baseline = facturación actual (hoy), igual que en el cálculo principal.
   const targetMonths = Math.max(1, Math.floor(getNum('i-target-months')));
-  const baseRev0     = (clientesIni + altasMes) * ticketMes;
-  const targetRev0   = baseRev0 * multiplier;
+  const targetRev0   = facturacion * multiplier;
 
   function simAtMonth(g, m) {
     let b = budget0;
