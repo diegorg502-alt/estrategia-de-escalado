@@ -492,6 +492,29 @@
         </div>
       </div>
 
+      <!-- MODO INVERSO -->
+      <div class="client-panel">
+        <div class="panel-title">// modo inverso · ¿en cuántos meses quieres multiplicar?</div>
+        <div class="input-row" style="margin-bottom:0.75rem">
+          <label class="input-label">Meses objetivo</label>
+          <input type="number" class="num-input" id="i-target-months" value="12" min="1" step="1">
+        </div>
+        <div class="client-grid">
+          <div class="client-item">
+            <label>Growth requerido</label>
+            <div class="client-val" id="c-req-growth">—</div>
+          </div>
+          <div class="client-item">
+            <label>Inversión mes objetivo</label>
+            <div class="client-val" id="c-req-budget">—</div>
+          </div>
+          <div class="client-item">
+            <label>Inversión total acumulada</label>
+            <div class="client-val" id="c-req-cumul">—</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -657,6 +680,57 @@ function simulate() {
   document.getElementById('c-churn').textContent   = fmt1(churnCarteraMes) + ' / mes';
   document.getElementById('c-surplus').textContent = (surplusM1 >= 0 ? '+' : '') + fmt1(surplusM1) + ' / mes';
 
+  // MODO INVERSO: encontrar el growth necesario para multiplicar en N meses.
+  // baseline = ingresos mes 1 (pool[0] × ticket_mes), target = baseline × multiplicador.
+  // Búsqueda binaria sobre el growth para encontrar el mínimo que alcanza el target en M meses.
+  const targetMonths = Math.max(1, Math.floor(getNum('i-target-months')));
+  const baseRev0     = (clientesIni + altasMes) * ticketMes;
+  const targetRev0   = baseRev0 * multiplier;
+
+  function simAtMonth(g, m) {
+    let bud = budget0;
+    let pool = clientesIni;
+    let cumul = 0;
+    for (let i = 0; i <= m; i++) {
+      if (i > 0) bud = bud * (1 + g);
+      cumul += bud;
+      pool += bud * altasPerBudget;
+      if (i === m) return { pool, bud, cumul };
+      pool = pool * monthlyRet;
+    }
+    return { pool: 0, bud: 0, cumul: 0 };
+  }
+
+  let reqGrowth = 0, reqBud = 0, reqCumul = 0;
+  let achievable = false;
+  if (targetRev0 > 0 && altasPerBudget > 0) {
+    const maxR = simAtMonth(5, targetMonths - 1);
+    if (maxR.pool * ticketMes >= targetRev0) {
+      achievable = true;
+      let lo = 0, hi = 5;
+      for (let iter = 0; iter < 60; iter++) {
+        const mid = (lo + hi) / 2;
+        const r = simAtMonth(mid, targetMonths - 1);
+        if (r.pool * ticketMes >= targetRev0) hi = mid;
+        else lo = mid;
+      }
+      reqGrowth = (lo + hi) / 2;
+      const r = simAtMonth(reqGrowth, targetMonths - 1);
+      reqBud = r.bud;
+      reqCumul = r.cumul;
+    }
+  }
+
+  if (achievable) {
+    document.getElementById('c-req-growth').textContent = fmt1(reqGrowth * 100) + '%/mes';
+    document.getElementById('c-req-budget').textContent = fmt(reqBud) + '€/mes';
+    document.getElementById('c-req-cumul').textContent  = fmt(reqCumul) + '€';
+  } else {
+    document.getElementById('c-req-growth').textContent = 'Imposible';
+    document.getElementById('c-req-budget').textContent = '—';
+    document.getElementById('c-req-cumul').textContent  = '—';
+  }
+
   renderChart();
   renderBudgetChart();
 }
@@ -806,7 +880,7 @@ function renderBudgetChart() {
 const inputIds = [
   'i-clients','i-ticket-mes','i-renovations','i-duration',
   'i-budget','i-altas','i-ticket-alta','i-financing','i-growth','i-cac-max',
-  'i-multiplier','i-months'
+  'i-multiplier','i-months','i-target-months'
 ];
 inputIds.forEach(id => {
   document.getElementById(id).addEventListener('input', simulate);
