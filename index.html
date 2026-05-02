@@ -387,6 +387,12 @@
         <input type="number" class="num-input blue" id="i-growth" value="35" min="0" step="1">
       </div>
 
+      <div class="input-row">
+        <label class="input-label">Coste máximo por cliente (€)</label>
+        <input type="number" class="num-input blue" id="i-cac-max" value="500" min="0" step="50">
+        <div class="input-hint" id="cac-max-hint">→ —</div>
+      </div>
+
       <div class="divider"></div>
 
       <div class="panel-subtitle">Simulación</div>
@@ -515,8 +521,15 @@ function simulate() {
   const ticketVenta  = Math.max(0, getNum('i-ticket-alta'));
   const financing    = Math.max(1, Math.min(duration, getNum('i-financing')));
   const growth       = getNum('i-growth') / 100;
+  const cacMax       = Math.max(0, getNum('i-cac-max'));
   const multiplier   = Math.max(1, getNum('i-multiplier'));
   const months       = Math.max(1, Math.floor(getNum('i-months')));
+
+  // CAC actual (implícito) y tope de presupuesto derivado.
+  // Si el cliente actual cuesta CAC0 y aceptamos hasta CAC_max, escalamos
+  // proporcionalmente: budgetMax = budget0 × CAC_max / CAC_actual.
+  const cacInitial = altasMes > 0 ? budget0 / altasMes : 0;
+  const budgetMax  = (cacInitial > 0 && cacMax > 0) ? budget0 * cacMax / cacInitial : 0;
 
   // Pago mensual durante financiación = ticket de venta / meses de financiación
   const monthlyAlta = financing > 0 ? ticketVenta / financing : 0;
@@ -554,13 +567,30 @@ function simulate() {
   document.getElementById('renov-hint').textContent =
     '→ Vida media: ' + fmt1(lifeM) + ' meses · LTV: ' + fmt(ltv) + '€';
 
-  // Altas nuevas por mes (la inversión y por tanto las altas crecen al growth)
-  const newAltas = new Array(months).fill(0);
-  let na = altasMes;
-  newAltas[0] = na;
+  // Presupuesto y altas: se mueven juntos (CAC implícito constante).
+  // El presupuesto crece a `growth` mensual hasta tocar el techo `budgetMax`,
+  // y las altas escalan en proporción al presupuesto.
+  const altasPerBudget = budget0 > 0 ? altasMes / budget0 : 0;
+  const budgetArr = new Array(months).fill(0);
+  const newAltas  = new Array(months).fill(0);
+  let bud = budget0;
+  if (budgetMax > 0 && bud > budgetMax) bud = budgetMax;
+  budgetArr[0] = bud;
+  newAltas[0]  = bud * altasPerBudget;
   for (let m = 1; m < months; m++) {
-    na = na * (1 + growth);
-    newAltas[m] = na;
+    bud = bud * (1 + growth);
+    if (budgetMax > 0 && bud > budgetMax) bud = budgetMax;
+    budgetArr[m] = bud;
+    newAltas[m]  = bud * altasPerBudget;
+  }
+
+  // Hint del CAC máximo: tope de presupuesto y altas implicadas con CAC actual
+  const altasMax    = budgetMax * altasPerBudget;
+  const cacMaxHint  = document.getElementById('cac-max-hint');
+  if (cacMaxHint) {
+    cacMaxHint.textContent = budgetMax > 0
+      ? '→ Tope inversión: ' + fmt(budgetMax) + '€/mes (' + fmt1(altasMax) + ' altas/mes)'
+      : '→ —';
   }
 
   // Stock-flow del POOL de clientes activos (cartera + altas acumuladas - churn).
@@ -579,15 +609,6 @@ function simulate() {
   const revenue = new Array(months).fill(0);
   for (let m = 0; m < months; m++) {
     revenue[m] = alive[m] * ticketMes;
-  }
-
-  // Presupuesto mensual: crece al ritmo del growth
-  const budgetArr = new Array(months).fill(0);
-  let bud = budget0;
-  budgetArr[0] = bud;
-  for (let m = 1; m < months; m++) {
-    bud = bud * (1 + growth);
-    budgetArr[m] = bud;
   }
 
   // Métricas multiplicador
@@ -773,7 +794,7 @@ function renderBudgetChart() {
 
 const inputIds = [
   'i-clients','i-ticket-mes','i-renovations','i-duration',
-  'i-budget','i-altas','i-ticket-alta','i-financing','i-growth',
+  'i-budget','i-altas','i-ticket-alta','i-financing','i-growth','i-cac-max',
   'i-multiplier','i-months'
 ];
 inputIds.forEach(id => {
