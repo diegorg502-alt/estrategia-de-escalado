@@ -474,12 +474,20 @@
             <div class="client-val" id="c-life">—</div>
           </div>
           <div class="client-item">
-            <label>Ciclos completos</label>
+            <label>Ciclos</label>
             <div class="client-val" id="c-cycles">—</div>
           </div>
           <div class="client-item">
             <label>LTV total</label>
             <div class="client-val" id="c-ltv">—</div>
+          </div>
+          <div class="client-item">
+            <label>Churn cartera / mes</label>
+            <div class="client-val" id="c-churn">—</div>
+          </div>
+          <div class="client-item">
+            <label>Surplus mes 1</label>
+            <div class="client-val" id="c-surplus">—</div>
           </div>
         </div>
       </div>
@@ -641,9 +649,13 @@ function simulate() {
   }
 
   // Cliente medio
-  document.getElementById('c-life').textContent   = fmt1(lifeM) + ' meses';
-  document.getElementById('c-cycles').textContent = fmt1(cyclesAvg) + ' ciclos';
-  document.getElementById('c-ltv').textContent    = fmt(ltv) + '€';
+  const churnCarteraMes = clientesIni * (1 - monthlyRet);
+  const surplusM1 = altasMes - churnCarteraMes;
+  document.getElementById('c-life').textContent    = fmt1(lifeM) + ' meses';
+  document.getElementById('c-cycles').textContent  = fmt1(cyclesAvg) + ' ciclos';
+  document.getElementById('c-ltv').textContent     = fmt(ltv) + '€';
+  document.getElementById('c-churn').textContent   = fmt1(churnCarteraMes) + ' / mes';
+  document.getElementById('c-surplus').textContent = (surplusM1 >= 0 ? '+' : '') + fmt1(surplusM1) + ' / mes';
 
   renderChart();
   renderBudgetChart();
